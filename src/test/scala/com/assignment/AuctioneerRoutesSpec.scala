@@ -1,5 +1,7 @@
 package com.assignment
 
+import java.sql.Timestamp
+
 import akka.actor.testkit.typed.scaladsl.ActorTestKit
 import akka.actor.typed.scaladsl.adapter._
 import akka.http.scaladsl.marshalling.Marshal
@@ -17,59 +19,48 @@ class AuctioneerRoutesSpec extends WordSpec with Matchers with ScalaFutures with
   lazy val auctioneer = new AuctioneerRoutes()
   lazy val routes = auctioneer.routes
 
-  // use the json formats to marshal and unmarshall objects in the test
   import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
   import JsonFormats._
-  //#set-up
 
-  //#actual-test
-  "UserRoutes" should {
-    "return no users if no present (GET /users)" in {
-      val request = HttpRequest(uri = "/users")
+  "Routes" should {
+
+
+    "be able to add house" in {
+      val house = House("Nirala")
+      val houseEntity = Marshal(house).to[MessageEntity].futureValue
+      val request = Post("/add/new/house").withEntity(houseEntity)
+      request ~> routes ~> check {
+        entityAs[String] should ===("House with name Nirala is added for auction")
+      }
+    }
+
+    "be able to list all house" in {
+      val request = HttpRequest(uri = "/list/all/houses")
 
       val req = request ~> (routes)
           req ~> check {
-        status should ===(StatusCodes.OK)
-
-        // we expect the response to be json:
-        contentType should ===(ContentTypes.`application/json`)
-
-        // and no entries should be in the list:
-        entityAs[String] should ===("""{"users":[]}""")
+        entityAs[AllHouses] should ===(AllHouses(List(House("Nirala"))))
       }
     }
 
-    /*"be able to add users (POST /users)" in {
-      val user = User("Kapi", 42, "jp")
-      val userEntity = Marshal(user).to[MessageEntity].futureValue // futureValue is from ScalaFutures
-
-      // using the RequestBuilding DSL:
-      val request = Post("/users").withEntity(userEntity)
-
+    "be able to remove house" in {
+      val house = House("Nirala")
+      val houseEntity = Marshal(house).to[MessageEntity].futureValue
+      val request = Delete("/remove/house").withEntity(houseEntity)
       request ~> routes ~> check {
-        status should ===(StatusCodes.Created)
-
-        // we expect the response to be json:
-        contentType should ===(ContentTypes.`application/json`)
-
-        // and we know what message we're expecting back:
-        entityAs[String] should ===("""{"description":"User Kapi created."}""")
+        entityAs[String] should ===("House Nirala deleted")
       }
     }
-    //#testing-post
 
-    "be able to remove users (DELETE /users)" in {
-      // user the RequestBuilding DSL provided by ScalatestRouteSpec:
-      val request = Delete(uri = "/users/Kapi")
-
+    "be able to add auction for house" in {
+      val house = HouseAuction("fresh", "Fresh auction", new Timestamp(System.now))
+      val houseEntity = Marshal(house).to[MessageEntity].futureValue
+      val request = Delete("/add/new/auction/for/Nirala").withEntity(houseEntity)
       request ~> routes ~> check {
-        status should ===(StatusCodes.OK)
-
-        contentType should ===(ContentTypes.`application/json`)
-
-        entityAs[String] should ===("""{"description":"User Kapi deleted."}""")
+        entityAs[String] should ===("House Nirala deleted")
       }
-    }*/
+    }
+
   }
 
 }
