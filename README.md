@@ -18,7 +18,7 @@ This application is a akka-http application for handling different web request r
 
 ## Postman
 
-### A postman collection file is attached in the repo. This postman collection has all the requests for the urls that the web application serves.
+### A postman collection file is attached in the repo. This postman collection has all the requests for the urls that the web application serves. Here all the url are self explanatory.
 
 1. Install postman through Google Chrome extension or install it directly
 2. Import the json file
